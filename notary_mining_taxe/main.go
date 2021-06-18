@@ -383,10 +383,10 @@ func fillKomodoStatsMining(notaryNodeId string, from string, to string, category
 		}
 	}
 	ReleaseInternalExecGet(req, res)
-	CalculateFromKomodoStatsMining(category)
+	CalculateFromKomodoStatsMining(category, notaryNodeId)
 }
 
-func CalculateFromKomodoStatsMining(category string) {
+func CalculateFromKomodoStatsMining(category string, notaryNodeId string) {
 	var prevValueUSD float64 = 0
 	var prevValueEUR float64 = 0
 	var totalKMD float64 = 0
@@ -415,7 +415,7 @@ func CalculateFromKomodoStatsMining(category string) {
 			fmt.Printf("What the fuck")
 		}
 	}
-	generateKomodoStatsTransactionReport(category)
+	generateKomodoStatsTransactionReport(category, notaryNodeId)
 }
 
 func checkError(message string, err error) {
@@ -424,8 +424,8 @@ func checkError(message string, err error) {
 	}
 }
 
-func generateKomodoStatsTransactionReport(category string) {
-	file, err := os.Create(category + "-komodostats-mining-tax-report.csv")
+func generateKomodoStatsTransactionReport(category string, notaryNodeId string) {
+	file, err := os.Create(notaryNodeId + "-" + category + "-komodostats-mining-tax-report.csv")
 	checkError("Cannot create file", err)
 	defer file.Close()
 	writer := csv.NewWriter(file)
