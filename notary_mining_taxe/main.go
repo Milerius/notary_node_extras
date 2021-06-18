@@ -13,16 +13,19 @@ import (
 //  https://stats.kmd.io/api/source/mined/?name=slyris_EU&min_blocktime=1623861228&max_blocktime=1623893930
 
 const (
-	layoutISO = "2006-01-02"
-	layoutUS  = "January 2, 2006"
+	layoutISO      = "2006-01-02"
+	layoutUS       = "January 2, 2006"
+	komodoStatsUri = "https://komodostats.com/api/notary/mined.json?nodename="
+	smkStatsUri    = "https://stats.kmd.io/api/source/mined/?name="
 )
 
 type Config struct {
 	NotaryID []string `json:"notary_id"`
 	Range    []string `json:"range"`
+	Api      []string `json:"api"`
 }
 
-type StatsKmdMining struct {
+type SmkStatsKmdMining struct {
 	Count    int         `json:"count"`
 	Next     interface{} `json:"next"`
 	Previous interface{} `json:"previous"`
@@ -38,8 +41,26 @@ type StatsKmdMining struct {
 	} `json:"results"`
 }
 
+type KomodoStatsKmdMining []struct {
+	Height        int         `json:"height"`
+	Address       string      `json:"address"`
+	Amount        string      `json:"amount"`
+	Time          int         `json:"time"`
+	Txid          string      `json:"txid"`
+	Iguanaid      int         `json:"iguanaid"`
+	Networkid     int         `json:"networkid"`
+	Season        int         `json:"season"`
+	Name          string      `json:"name"`
+	Region        string      `json:"region"`
+	Kmdthirdparty string      `json:"kmdthirdparty"`
+	Ltc           string      `json:"ltc"`
+	Ltcbalance    interface{} `json:"ltcbalance"`
+	Active        int         `json:"active"`
+}
+
 var gConfig Config
-var gStatsMining StatsKmdMining
+var gSmkStatsMining SmkStatsKmdMining
+var gKomodoStatsMining KomodoStatsKmdMining
 
 func parseConfig() {
 	file, _ := ioutil.ReadFile("config.json")
@@ -55,17 +76,35 @@ func main() {
 			switch curRange {
 			case "month":
 				calculateTaxeLastMonth(s)
+				break
 			case "year":
 				calculateTaxeLastYear(s)
+				break
 			}
 		}
 	}
 }
 
 func fillMiningStats(notaryNodeId string, from time.Time, to time.Time) {
-	//fmt.Printf("%s\n", from.Format(layoutISO))
-	//fmt.Printf("%s\n", to.Format(layoutISO))
-	url := "https://stats.kmd.io/api/source/mined/?name=" + notaryNodeId + "&min_blocktime=" + strconv.FormatInt(from.Unix(), 10) + "&max_blocktime=" + strconv.FormatInt(to.Unix(), 10)
+	for _, curApi := range gConfig.Api {
+		switch curApi {
+		case "https://stats.kmd.io":
+			fillSmkStatsMining(notaryNodeId, strconv.FormatInt(from.Unix(), 10), strconv.FormatInt(to.Unix(), 10))
+			break
+		case "https://komodostats.com/":
+			fillKomodoStatsMining(notaryNodeId, from.Format(layoutISO), to.Format(layoutISO))
+			break
+		}
+	}
+}
+
+func fillKomodoStatsMining(notaryNodeId string, from string, to string) {
+	url := komodoStatsUri + notaryNodeId + "&start=" + from + "&end=" + to
+	fmt.Printf("Processing: %s\n", url)
+}
+
+func fillSmkStatsMining(notaryNodeId string, from string, to string) {
+	url := smkStatsUri + notaryNodeId + "&min_blocktime=" + from + "&max_blocktime=" + to
 	fmt.Printf("Processing: %s\n", url)
 }
 
