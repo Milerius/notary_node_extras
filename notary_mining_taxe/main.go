@@ -266,6 +266,8 @@ type Config struct {
 	NotaryID []string `json:"notary_id"`
 	Range    []string `json:"range"`
 	Api      []string `json:"api"`
+	Fiat     []string `json:"fiat"`
+	Years    []int    `json:"years"`
 }
 
 type SmkStatsKmdMining struct {
@@ -304,6 +306,7 @@ var gConfig Config
 var gSmkStatsMining SmkStatsKmdMining
 var gKomodoStatsMining KomodoStatsKmdMining
 var gGeckoRegistry = make(map[string]CoingeckoHistoryResponse)
+var gCurYear string
 
 func InternalExecGet(finalEndpoint string, ctx *fasthttp.RequestCtx, shouldRelease bool) (*fasthttp.Request, *fasthttp.Response) {
 	_ = glg.Debugf("final endpoint: %s", finalEndpoint)
@@ -344,15 +347,53 @@ func parseConfig() {
 func main() {
 	parseConfig()
 	for _, s := range gConfig.NotaryID {
-		fmt.Printf("Calculating taxe revenue of %s\n", s)
-		for _, curRange := range gConfig.Range {
-			switch curRange {
-			case "month":
-				calculateTaxeLastMonth(s)
-				break
-			case "year":
-				calculateTaxeLastYear(s)
-				break
+		for _, curYear := range gConfig.Years {
+			fmt.Printf("Calculating taxe revenue of %s\n", s)
+			for _, curRange := range gConfig.Range {
+				switch curRange {
+				case "month":
+					calculateTaxeLastMonth(s)
+					break
+				case "year":
+					calculateTaxeLastYear(s)
+					break
+				case "1":
+					calculateBySpecificMonth(s, time.January, curYear)
+					break
+				case "2":
+					calculateBySpecificMonth(s, time.February, curYear)
+					break
+				case "3":
+					calculateBySpecificMonth(s, time.March, curYear)
+					break
+				case "4":
+					calculateBySpecificMonth(s, time.April, curYear)
+					break
+				case "5":
+					calculateBySpecificMonth(s, time.May, curYear)
+					break
+				case "6":
+					calculateBySpecificMonth(s, time.June, curYear)
+					break
+				case "7":
+					calculateBySpecificMonth(s, time.July, curYear)
+					break
+				case "8":
+					calculateBySpecificMonth(s, time.August, curYear)
+					break
+				case "9":
+					calculateBySpecificMonth(s, time.September, curYear)
+					break
+				case "10":
+					calculateBySpecificMonth(s, time.October, curYear)
+					break
+				case "11":
+					calculateBySpecificMonth(s, time.November, curYear)
+					break
+				case "12":
+					calculateBySpecificMonth(s, time.December, curYear)
+					break
+				}
 			}
 		}
 	}
@@ -425,7 +466,7 @@ func checkError(message string, err error) {
 }
 
 func generateKomodoStatsTransactionReport(category string, notaryNodeId string) {
-	file, err := os.Create(notaryNodeId + "-" + category + "-komodostats-mining-tax-report.csv")
+	file, err := os.Create(notaryNodeId + "-" + category + "-komodostats-mining-tax-report-" + gCurYear + ".csv")
 	checkError("Cannot create file", err)
 	defer file.Close()
 	writer := csv.NewWriter(file)
@@ -491,4 +532,14 @@ func calculateTaxeLastMonth(notaryNodeId string) {
 	fmt.Printf("timestamp begin of the month: %v %d\n", beginningOfMonth, beginningOfMonth.Unix())
 	fmt.Printf("timestamp end of the month: %v %d\n", endOfMonth, endOfMonth.Unix())
 	fillMiningStats(notaryNodeId, beginningOfMonth, endOfMonth, "monthly")
+}
+
+func calculateBySpecificMonth(notaryNodeId string, month time.Month, year int) {
+	var deducedTime time.Time = time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	beginningOfMonth := now.With(deducedTime).BeginningOfMonth()
+	endOfMonth := now.With(deducedTime).EndOfMonth()
+	fmt.Printf("timestamp begin of the month: %v %d\n", beginningOfMonth, beginningOfMonth.Unix())
+	fmt.Printf("timestamp end of the month: %v %d\n", endOfMonth, endOfMonth.Unix())
+	gCurYear = strconv.Itoa(year)
+	fillMiningStats(notaryNodeId, beginningOfMonth, endOfMonth, month.String())
 }

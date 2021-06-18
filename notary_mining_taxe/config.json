@@ -1,6 +1,7 @@
 {
   "notary_id": ["slyris_EU"],
-  "range": ["month", "year"],
+  "range": ["6"],
+  "years": [2021],
   "fiat": ["usd", "eur"],
   "api": ["https://stats.kmd.io", "https://komodostats.com/"]
 }

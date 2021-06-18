@@ -11,6 +11,10 @@ go build
 ./notary_mining_taxe
 ```
 
+## config.jsin
+
+- range -> "month", "year", or specific number of month eg: 6 -> June
+
 ## TODO
 
 - Specify explicit month in range in config.json
