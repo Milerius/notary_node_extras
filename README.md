@@ -10,3 +10,8 @@ cd notary_mining_taxe
 go build
 ./notary_mining_taxe
 ```
+
+## TODO
+
+- Specify explicit month in range in config.json
+- Handle fiat dynamically (choose the fiat of the output)
