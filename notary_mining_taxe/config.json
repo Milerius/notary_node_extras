@@ -1,0 +1,5 @@
+{
+  "notary_id": ["slyris_EU"],
+  "range": ["month", "year"],
+  "fiat": ["usd", "eur"]
+}
